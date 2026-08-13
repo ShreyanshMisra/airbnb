@@ -1,21 +1,3 @@
-"""Build external-data features for the NYC Airbnb dataset.
-
-Inputs (under data/external/):
-  - tl_2019_36_tract/tl_2019_36_tract.shp  (TIGER 2019 census tracts, NY state)
-  - acs2019_b19013_nytracts.json           (ACS 2015-2019 5-yr median HH income, NYC tracts)
-  - mta_subway_stations.csv                (MTA station list, lat/lon)
-
-Output:
-  - data/derived/listings_external.parquet (one row per listing id, with new features)
-
-Features added per listing:
-  - tract_geoid:         11-char census tract GEOID
-  - tract_median_income: ACS 2015-2019 5-yr median household income (USD)
-  - dist_subway_km:      haversine distance to nearest MTA subway station
-  - dist_central_park_km, dist_jfk_km, dist_lga_km, dist_wall_st_km:
-                         haversine distances to additional NYC anchors
-"""
-
 from __future__ import annotations
 
 import json
@@ -32,9 +14,9 @@ LISTINGS_CSV = ROOT / 'data' / 'listings.csv'
 
 NYC_COUNTY_FIPS = {'005', '047', '061', '081', '085'}
 
-# ACS uses extreme negative integers as sentinels for "not available", "below
-# range", "estimate not reported", etc. Any value <= 0 is non-meaningful for
-# median household income.
+# ACS uses extreme negative integers for "not available", "below range", "estimate not reported", etc
+# Any value <= 0 is non-meaningful for median household income
+
 ACS_SENTINEL_THRESHOLD = 0
 
 ANCHORS_LL = {
@@ -84,7 +66,7 @@ def assign_tracts(listings: pd.DataFrame) -> pd.Series:
     )
     joined = gpd.sjoin(listings_gdf, tracts, how='left', predicate='within')
 
-    # A point on the polygon boundary can match multiple tracts; keep first.
+    # A point on the polygon boundary can match multiple tracts; keep first
     joined = joined.drop_duplicates(subset='id', keep='first')
     return joined.set_index('id')['GEOID']
 

@@ -22,3 +22,6 @@ ENV/
 
 # Logs
 *.log
+
+# Other
+.claude
